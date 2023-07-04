@@ -44,7 +44,6 @@ resource "proxmox_vm_qemu" "vm-terra" {
     size = "20G"
     type = "scsi"
     storage = "exo-industries-ceph"
-    iothread = 1
   }
   # le network en vmbr1
   network {
