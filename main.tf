@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     proxmox = {
-      source = "telmate/proxmox"
+      source  = "telmate/proxmox"
       version = "2.9.11"
     }
   }
@@ -19,43 +19,46 @@ provider "proxmox" {
 # on cree une ressource proxmox_vm_qemu du nom de vm-terraform
 resource "proxmox_vm_qemu" "vm-terra" {
   count = var.vm_count
-#count = 2 
-# 1 vm créer, 2 pour 2vm en apply
-  name = var.vm_name 
-#count.index commence a 0, + 1 = cette VM sera nommé vm-terraform-1 la suivante -2 
+  #count = 2 
+  # 1 vm créer, 2 pour 2vm en apply
+  name = var.vm_name
+  #count.index commence a 0, + 1 = cette VM sera nommé vm-terraform-1 la suivante -2 
   # utilisation du fichier vars 
   target_node = var.proxmox_host
-    # la variable contient "Template-Debian"
+  # la variable contient "Template-Debian"
   clone = var.template_name
   # Parametre de base de la VM agent = guest agent
-  agent = 1
-  os_type = "cloud-init"
-  cores = 2
-  sockets = 1
-  nameserver = "192.168.10.200"
+  agent        = 1
+  os_type      = "cloud-init"
+  cores        = 2
+  sockets      = 1
+  nameserver   = "192.168.10.200"
   searchdomain = "exo-industries.xyz"
-  cpu = "host"
-  memory = 2048
-  scsihw = "virtio-scsi-pci"
-  bootdisk = "scsi0"
+  cpu          = "host"
+  memory       = 2048
+  scsihw       = "virtio-scsi-pci"
+  bootdisk     = "scsi0"
   disk {
     slot = 0
     # taille du disque du template et emplacement de celui-ci en local sur le nodes
-    size = "20G"
-    type = "scsi"
+    size    = "20G"
+    type    = "scsi"
     storage = "exo-industries-ceph"
   }
   # le network en vmbr1
   network {
-    model = "virtio"
+    model  = "virtio"
     bridge = "vmbr1"
   }
   lifecycle {
     ignore_changes = [
       network,
     ]
-}
+  }
   # a ameliorer le plan d'assignement ip sinon vm utilisera le dhcp 
-  ipconfig0 = "ip=${var.ip_vm}/24,gw=${var.ip_range}.1"  
+  ipconfig0 = "ip=${var.ip_vm}/24,gw=${var.ip_range}.1"
 
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook --ssh-common-args '-o StrictHostKeyChecking=no' --become --become-user root --become-method sudo --private-key $HOME/.ssh/id_rsa -u projet -i inventory playbooks/${var.vm_name}.yml"
+  }
 }
