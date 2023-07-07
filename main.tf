@@ -19,20 +19,23 @@ provider "proxmox" {
 # on cree une ressource proxmox_vm_qemu du nom de vm-terraform
 resource "proxmox_vm_qemu" "vm-terra" {
   count = var.vm_count
+  #count = 2 
+  # 1 vm créer, 2 pour 2vm en apply
   name = var.vm_name
   #count.index commence a 0, + 1 = cette VM sera nommé vm-terraform-1 la suivante -2 
-  # utilisation du fichier vars
+  # utilisation du fichier vars 
   target_node = var.proxmox_host
+  # la variable contient "Template-Debian"
   clone = var.template_name
   # Parametre de base de la VM agent = guest agent
   agent        = 1
   os_type      = "cloud-init"
-  cores        = 1
+  cores        = 2
   sockets      = 1
-  nameserver   = "8.8.8.8"
-  searchdomain = ""
+  nameserver   = "192.168.10.200"
+  searchdomain = "exo-industries.xyz"
   cpu          = "host"
-  memory       = 1024
+  memory       = 2048
   scsihw       = "virtio-scsi-pci"
   bootdisk     = "scsi0"
   disk {
@@ -44,7 +47,7 @@ resource "proxmox_vm_qemu" "vm-terra" {
   }
   # le network en vmbr1
   network {
-    model  = "e1000"
+    model  = "virtio"
     bridge = "vmbr1"
   }
   lifecycle {
